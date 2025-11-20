@@ -6,5 +6,21 @@
     "grade": "5",
     "date": "2025-11-20",
     "teacher": "\u0410\u043b\u0435\u043a\u0441\u0435\u0439"
+  },
+  {
+    "id": 1,
+    "name": "\u0421\u0432\u0438\u043d\u044c\u044f",
+    "subject": "\u042f-\u043a\u043b\u0430\u0441\u0441",
+    "grade": "5",
+    "date": "2025-11-20",
+    "teacher": "\u042f"
+  },
+  {
+    "id": 2,
+    "name": "<script>alert(\"1\")</script>",
+    "subject": "<script>alert(\"1\")</script>",
+    "grade": "5",
+    "date": "2025-11-20",
+    "teacher": "<script>alert(\"1\")</script>"
   }
 ]
