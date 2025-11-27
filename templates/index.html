@@ -53,6 +53,23 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #121212;
+            color: #ff4d4d;
+            padding: 12px 25px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        .logout-btn:hover {
+            background: #1e1e1e;
+            transform: translateY(-3px);
+        }
         .icon {
             font-size: 2em;
         }
@@ -75,6 +92,9 @@
     </style>
 </head>
 <body>
+    <form id="logoutForm" action="/api/logout" method="POST"></form>
+    <button class="logout-btn" onclick="document.getElementById('logoutForm').submit();">🚪 Выйти</button>
+
     <div class="container">
         <h1>📚 Система управления оценками и классами</h1>
 

@@ -136,7 +136,7 @@ async def logout(response: Response, session_token: str = Cookie(None)):
         del active_sessions[session_token]
 
     response.delete_cookie("session_token")
-    return {"success": True}
+    return RedirectResponse(url="/login", status_code=302)
 # API endpoints для оценок (с проверкой авторизации)
 @app.get("/api/grades")
 def get_grades(session_token: str = Cookie(None)):
