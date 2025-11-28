@@ -13,6 +13,7 @@ templates = Jinja2Templates(directory="templates")
 JSON_FILE = "grades.json"
 CLASSES_FILE = "classes.json"
 EVENTS_FILE = "events.json"
+LESSONS_FILE = "lessons.json"
 USERS_FILE = "users.json"
 
 def load_data():
@@ -42,6 +43,15 @@ def load_events():
 def save_events(events):
     with open(EVENTS_FILE, "w", encoding="utf-8") as f:
         return json.dump(events, f, indent=2, ensure_ascii=False)
+def load_lessons():
+    try:
+        with open(LESSONS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
+def save_lessons(lessons):
+    with open(LESSONS_FILE, "w", encoding="utf-8") as f:
+        return json.dump(lessons, f, indent=2, ensure_ascii=False)
 def load_users():
     try:
         with open(USERS_FILE, "r", encoding="utf-8") as f:
@@ -77,6 +87,11 @@ def generate_event_id():
     if not events:
         return 0
     return max(cls["id"] for cls in events) + 1
+def generate_lesson_id():
+    lessons = load_lessons()
+    if not lessons:
+        return 0
+    return max(cls["id"] for cls in lessons) + 1
 # Страницы аутентификации
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -248,7 +263,7 @@ def add_event(data: Dict[str, Any], session_token: str = Cookie(None)):
     events.append(new_event)
     save_events(events)
     return {"Success": True, "class": new_event}
-@app.delete("/api/events")
+@app.delete("/api/events{event_id}")
 def delete_event(event_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
@@ -260,6 +275,39 @@ def delete_event(event_id: int, session_token: str = Cookie(None)):
             save_events(events)
             return deleted_event
     return {"ERROR": "Нет такого класса"}
+@app.get("/api/lessons")
+def get_lessons(session_token: str = Cookie(None)):
+    if not check_auth(session_token):
+        return {"error": "Не авторизован"}
+    return load_lessons()
+@app.post("/api/lessons")
+def add_lesson(data: Dict[str, Any], session_token: str = Cookie(None)):
+    if not check_auth(session_token):
+        return {"error": "Не авторизован"}
+    lessons = load_lessons()
+    new_lesson = {
+        "id": generate_lesson_id(),
+        "subject": data["subject"],
+        "time_from": data["time_from"],
+        "time_to": data["time_to"],
+        "type": data["type"]
+    }
+    lessons.append(new_lesson)
+    save_lessons(lessons)
+    return {"Success": True, "class": new_lesson}
+@app.delete("/api/lessons{lesson_id}")
+def delete_lesson(lesson_id: int, session_token: str = Cookie(None)):
+    if not check_auth(session_token):
+        return {"error": "Не авторизован"}
+
+    lessons = load_lessons()
+    for i, les in enumerate(events):
+        if les["id"] == lesson_id:
+            deleted_lesson = lessons.pop(i)
+            save_lessons(lessons)
+            return deleted_lesson
+    return {"ERROR": "Нет такого класса"}
+
 # Проверка авторизации для API
 @app.get("/api/check-auth")
 async def check_auth_endpoint(session_token: str = Cookie(None)):
@@ -292,5 +340,11 @@ async def events_page(request: Request, session_token: str = Cookie(None)):
     if not username:
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("events.html", {"request": request, "username": username})
+@app.get("/lessons", response_class=HTMLResponse)
+async def lessons_page(request: Request, session_token: str = Cookie(None)):
+    username = check_auth(session_token)
+    if not username:
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse("lessons.html", {"request": request, "username": username})
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
