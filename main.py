@@ -301,7 +301,7 @@ def delete_lesson(lesson_id: int, session_token: str = Cookie(None)):
         return {"error": "Не авторизован"}
 
     lessons = load_lessons()
-    for i, les in enumerate(events):
+    for i, les in enumerate(lessons):
         if les["id"] == lesson_id:
             deleted_lesson = lessons.pop(i)
             save_lessons(lessons)
