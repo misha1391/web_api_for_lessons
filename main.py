@@ -10,12 +10,13 @@ import secrets
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-JSON_FILE = "grades.json"
-CLASSES_FILE = "classes.json"
-EVENTS_FILE = "events.json"
-LESSONS_FILE = "lessons.json"
-USERS_FILE = "users.json"
+JSON_FILE = "jsons/grades.json"
+CLASSES_FILE = "jsons/classes.json"
+EVENTS_FILE = "jsons/events.json"
+LESSONS_FILE = "jsons/lessons.json"
+USERS_FILE = "jsons/users.json"
 
+# Load - Save
 def load_data():
     try:
         with open(JSON_FILE, "r", encoding="utf-8") as f:
@@ -72,6 +73,7 @@ def check_auth(token: str = None):
     if not token:
         return None
     return active_sessions.get(token)
+# generate_id
 def generate_id():
     grades = load_data()
     if not grades:
@@ -92,13 +94,7 @@ def generate_lesson_id():
     if not lessons:
         return 0
     return max(cls["id"] for cls in lessons) + 1
-# Страницы аутентификации
-@app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-@app.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+# api запросы
 @app.post("/api/register")
 async def register(data: Dict[str, Any]):
     users = load_users()
@@ -307,7 +303,6 @@ def delete_lesson(lesson_id: int, session_token: str = Cookie(None)):
             save_lessons(lessons)
             return deleted_lesson
     return {"ERROR": "Нет такого класса"}
-
 # Проверка авторизации для API
 @app.get("/api/check-auth")
 async def check_auth_endpoint(session_token: str = Cookie(None)):
@@ -315,6 +310,14 @@ async def check_auth_endpoint(session_token: str = Cookie(None)):
     if username:
         return {"authenticated": True, "username": username}
     return {"authenticated": False}
+
+# Страницы аутентификации
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 # Веб-страницы (с проверкой авторизации)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, session_token: str = Cookie(None)):
