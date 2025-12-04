@@ -1,6 +1,7 @@
 from typing import Dict, Any
 from fastapi import FastAPI, Request, Response, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
+import user
 from fastapi.templating import Jinja2Templates
 import uvicorn
 import json
@@ -9,6 +10,8 @@ import secrets
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+user.init("test.db")
 
 JSON_FILE = "jsons/grades.json"
 CLASSES_FILE = "jsons/classes.json"
