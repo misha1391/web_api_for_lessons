@@ -2,6 +2,8 @@ import sqlite3
 from datetime import datetime
 import os
 
+DEF_DB_FILE = "database.db"
+
 def init(db_file: str):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
@@ -11,7 +13,7 @@ def init(db_file: str):
             student TEXT NOT NULL,
             year TEXT NOT NULL,
             super_teacher TEXT NOT NULL
-        )""") # class
+        )""") # classes
         cursor.execute("""CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -59,34 +61,54 @@ def add(db_file: str, where: str, data: tuple):
             strNames += name + ", "
         strNames = strNames[0:-2]
         strQues = ("?, " * (len(cursor.description)-1))[0:-2]
-        print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})")
+        # print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})")
         cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", data)
         conn.commit()
 def get_all(db_file: str, where: str):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {where}")
+        tasks = tuple(cursor.fetchall())
+        return tasks
+def get_by_id(db_file: str, where: str, id: int):
+    with sqlite3.connect(db_file) as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT * FROM {where} WHERE id = ?", (id,)) # Нужен кортеж, заменяет все "?" в комманде
         tasks = cursor.fetchall()
         return tasks
-def get_by_id(db_file: str, task_id):
+def override_by_id(db_file: str, where: str, id: int, data: tuple):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)) # Нужен кортеж, заменяет все "?" в комманде
-        tasks = cursor.fetchall()
-        return tasks
-def update(title, description, db_file: str, task_id):
-    with sqlite3.connect(db_file) as conn:
-        cursor = conn.cursor()
-        cursor.execute("UPDATE tasks SET title = ?, description = ? WHERE id = ?", (title, description, task_id))  # Нужен кортеж, заменяет все "?" в комманде
+        cursor.execute(f"SELECT * FROM {where}")
+        names = [""] * (len(cursor.description) - 1)
+        for i, desk in enumerate(cursor.description):
+            if i != 0:
+                names[i - 1] += desk[0]
+        strNames = ""
+        for name in names:
+            strNames += name + " = ?, "
+        strNames = strNames[0:-2]
+        # print(f"UPDATE {where} SET {strNames} WHERE id = {id}")
+        cursor.execute(f"UPDATE {where} SET {strNames} WHERE id = {id}", data)
         conn.commit()
-def delete(title, description, db_file: str, task_id):
+def override(db_file: str, where: str, data: tuple):
+    for dat in data:
+        override_by_id(db_file, where, dat[0], dat[1:])
+def delete(db_file: str, where: str, task_id: int):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))  # Нужен кортеж, заменяет все "?" в комманде
+        cursor.execute(f"SELECT * FROM {where} WHERE id = {task_id}") # Писать так или как ниже без разницы
+        deleted_data = cursor.fetchall()
+        cursor.execute(f"DELETE FROM {where} WHERE id = ?", (task_id,))  # Нужен кортеж, заменяет все "?" в комманде
         conn.commit()
-
+        return deleted_data
 if __name__ == "__main__":
-    init("database.db")
-    add("database.db", "users", ("Лол", "ХОЛ", "safddsg"))
-    add("database.db", "users", ("Кек", "ХОЛ", "fdg"))
-    print(get_all("database.db", "users"))
+    init("todo.db")
+    add("todo.db", "users", ("Лол", "ХОЛ", "safddsg"))
+    add("todo.db", "users", ("Кек", "ХОЛ", "fdg"))
+    override_by_id("todo.db", "users", 0, ("Лол2", "ХОЛ2", "safddsg2"))
+    all = list(get_all("todo.db", "users"))
+    all[0] = [0, "Лох3", "ХОЛ3", "dsfgd3"]
+    override("todo.db", "users", all)
+    # print("deleted data:", delete("todo.db", "users", 1))
+    print(get_all("todo.db", "users"))

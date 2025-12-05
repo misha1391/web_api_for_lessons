@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from fastapi import FastAPI, Request, Response, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
-import user
+import user as userdb
 from fastapi.templating import Jinja2Templates
 import uvicorn
 import json
@@ -11,8 +11,9 @@ import secrets
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-user.init("test.db")
+userdb.init("database.db")
 
+# Jsons
 JSON_FILE = "jsons/grades.json"
 CLASSES_FILE = "jsons/classes.json"
 EVENTS_FILE = "jsons/events.json"
@@ -20,51 +21,6 @@ LESSONS_FILE = "jsons/lessons.json"
 USERS_FILE = "jsons/users.json"
 
 # Load - Save
-def load_data():
-    try:
-        with open(JSON_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-def save_data(grades):
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        return json.dump(grades, f, indent=2)
-def load_classes():
-    try:
-        with open(CLASSES_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-def save_classes(classes):
-    with open(CLASSES_FILE, "w", encoding="utf-8") as f:
-        return json.dump(classes, f, indent=2, ensure_ascii=False)
-def load_events():
-    try:
-        with open(EVENTS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-def save_events(events):
-    with open(EVENTS_FILE, "w", encoding="utf-8") as f:
-        return json.dump(events, f, indent=2, ensure_ascii=False)
-def load_lessons():
-    try:
-        with open(LESSONS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-def save_lessons(lessons):
-    with open(LESSONS_FILE, "w", encoding="utf-8") as f:
-        return json.dump(lessons, f, indent=2, ensure_ascii=False)
-def load_users():
-    try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return []
-def save_users(users):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        return json.dump(users, f, indent=2, ensure_ascii=False)
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 def generate_token() -> str:
@@ -76,31 +32,10 @@ def check_auth(token: str = None):
     if not token:
         return None
     return active_sessions.get(token)
-# generate_id
-def generate_id():
-    grades = load_data()
-    if not grades:
-        return 0
-    return max(grade["id"] for grade in grades) + 1
-def generate_class_id():
-    classes = load_classes()
-    if not classes:
-        return 0
-    return max(cls["id"] for cls in classes) + 1
-def generate_event_id():
-    events = load_events()
-    if not events:
-        return 0
-    return max(cls["id"] for cls in events) + 1
-def generate_lesson_id():
-    lessons = load_lessons()
-    if not lessons:
-        return 0
-    return max(cls["id"] for cls in lessons) + 1
 # api запросы
 @app.post("/api/register")
 async def register(data: Dict[str, Any]):
-    users = load_users()
+    users = userdb.get_all(userdb.DEF_DB_FILE, "users")
 
     username = data.get("username", "").strip()
     password = data.get("password", "")
@@ -119,12 +54,12 @@ async def register(data: Dict[str, Any]):
         "password": hash_password(password)
     }
     users.append(new_user)
-    save_users(users)
+    userdb.override("database.db", "users", users)
 
     return {"success": True}
 @app.post("/api/login")
 async def login(data: Dict[str, Any], response: Response):
-    users = load_users()
+    users = userdb.get_all(userdb.DEF_DB_FILE, "users")
 
     username = data.get("username", "").strip()
     password = data.get("password", "")
@@ -156,68 +91,59 @@ async def logout(response: Response, session_token: str = Cookie(None)):
 def get_grades(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    return load_data()
+    return userdb.get_all(userdb.DEF_DB_FILE, "grades")
 @app.post("/api/grades")
 def add_grade(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    grades = load_data()
     new_grade = {
-        "id": generate_id(),
         "name": data["name"],
+        "class_code": data["class_code"],
         "subject": data["subject"],
         "grade": data["grade"],
         "date": data["date"],
         "teacher": data["teacher"]
     }
-    grades.append(new_grade)
-    save_data(grades)
+    userdb.add(userdb.DEF_DB_FILE, "grades", new_grade)
     return {"Success": True, "grade": new_grade}
 @app.delete("/api/grades/{grade_id}")
 def delete_grade(grade_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    grades = load_data()
-    for i, grade in enumerate(grades):
-        if grade["id"] == grade_id:
-            deleted_grade = grades.pop(i)
-            save_data(grades)
-            return deleted_grade
+    deleted_grade = userdb.delete(userdb.DEF_DB_FILE, "grades", grade_id)
+    if deleted_grade:
+        return deleted_grade
     return {"ERROR": "Нет такой оценки"}
 @app.get("/api/grades/{grade_id}")
 def get_grade_by_id(grade_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    grades = load_data()
-    for grade in grades:
-        if grade["id"] == grade_id:
-            return grade
+    grade = userdb.get_by_id(userdb.DEF_DB_FILE, "grades", grade_id)
+    if grade:
+        return grade
     return {"ERROR": "Нет такой оценки"}
 # API endpoints для классов (с проверкой авторизации)
 @app.get("/api/classes")
 def all_classes(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    return load_classes()
+    return userdb.get_all(userdb.DEF_DB_FILE, "classes")
 @app.get("/api/classes/{class_id}")
 def get_class_by_id(class_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    classes = load_classes()
-    for cls in classes:
-        if cls["id"] == class_id:
-            return cls
+    clas = userdb.get_by_id(userdb.DEF_DB_FILE, "classes", class_id)
+    if clas:
+        return clas
     return {"ERROR": "Нет такого класса"}
 @app.post("/api/classes")
 def add_class(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-
-    classes = load_classes()
     new_class = {
         "id": generate_class_id(),
         "code": data["code"],
@@ -225,32 +151,26 @@ def add_class(data: Dict[str, Any], session_token: str = Cookie(None)):
         "year": data["year"],
         "super_teacher": data["super_teacher"]
     }
-    classes.append(new_class)
-    save_classes(classes)
+    userdb.add(userdb.DEF_DB_FILE, "classes", new_class)
     return {"Success": True, "class": new_class}
 @app.delete("/api/classes/{class_id}")
 def delete_class_by_id(class_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    classes = load_classes()
-    for i, cls in enumerate(classes):
-        if cls["id"] == class_id:
-            deleted_class = classes.pop(i)
-            save_classes(classes)
-            return deleted_class
+    deleted_class = userdb.delete(userdb.DEF_DB_FILE, "classes", class_id)
+    if deleted_class:
+        return deleted_class
     return {"ERROR": "Нет такого класса"}
 @app.get("/api/events")
 def get_events(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    return load_events()
+    return userdb.get_all(userdb.DEF_DB_FILE, "events")
 @app.post("/api/events")
 def add_event(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-
-    events = load_events()
     new_event = {
         "id": generate_event_id(),
         "title": data["title"],
@@ -259,26 +179,22 @@ def add_event(data: Dict[str, Any], session_token: str = Cookie(None)):
         "type": data["type"],
         "description": data["description"]
     }
-    events.append(new_event)
-    save_events(events)
+    userdb.add(userdb.DEF_DB_FILE, "events", new_event)
     return {"Success": True, "class": new_event}
 @app.delete("/api/events{event_id}")
 def delete_event(event_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    events = load_events()
-    for i, cls in enumerate(events):
-        if cls["id"] == event_id:
-            deleted_event = events.pop(i)
-            save_events(events)
-            return deleted_event
+    deleted_event = userdb.delete(userdb.DEF_DB_FILE, "events", event_id)
+    if deleted_event:
+        return deleted_event
     return {"ERROR": "Нет такого класса"}
 @app.get("/api/lessons")
 def get_lessons(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    return load_lessons()
+    return userdb.get_all(userdb.DEF_DB_FILE, "lessons")
 @app.post("/api/lessons")
 def add_lesson(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
