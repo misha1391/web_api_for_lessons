@@ -49,11 +49,12 @@ async def register(data: Dict[str, Any]):
             return {"success": False, "error": "Пользователь уже существует"}
 
     # Создание нового пользователя
-    new_user = (
-        username,
-        hash_password(password),
-        data.get("class_code", "")
-    )
+    print("data:", data)
+    new_user = {
+        "name": username,
+        "hashedPassword": hash_password(password),
+        "class_code": data.get("class_code")
+    }
     userdb.add("database.db", "users", new_user)
 
     return {"success": True}

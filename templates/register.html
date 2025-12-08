@@ -146,62 +146,76 @@
         </div>
     </div>
 
-    <script>
-        function showMessage(text, type) {
-            const msg = document.getElementById('message');
-            msg.textContent = text;
-            msg.className = `message ${type}`;
-            msg.style.display = 'block';
-        }
-
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (password !== confirmPassword) {
-                showMessage('Пароли не совпадают', 'error');
-                return;
-            }
-
-            if (username.length < 3) {
-                showMessage('Имя пользователя должно быть не менее 3 символов', 'error');
-                return;
-            }
-
-            if (password.length < 4) {
-                showMessage('Пароль должен быть не менее 4 символов', 'error');
-                return;
-            }
-
-            const data = {
-                username: username,
-                password: password
-            };
-
-            try {
-                const response = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showMessage('Регистрация успешна! Перенаправление...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 1500);
-                } else {
-                    showMessage(result.error || 'Ошибка регистрации', 'error');
-                }
-            } catch (error) {
-                showMessage('Ошибка подключения к серверу', 'error');
-            }
-        });
-    </script>
 </body>
 </html>
+
+
+
+
+
+
+
+<script>
+    function showMessage(text, type) {
+        const msg = document.getElementById('message');
+        msg.textContent = text;
+        msg.className = `message ${type}`;
+        msg.style.display = 'block';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username        = document.getElementById('username').value;
+        const class_code      = document.getElementById('class_code').value;
+        const password        = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            showMessage('Пароли не совпадают', 'error');
+            return;
+        }
+
+        if (username.length < 3) {
+            showMessage('Имя пользователя должно быть не менее 3 символов', 'error');
+            return;
+        }
+
+        if (password.length < 4) {
+            showMessage('Пароль должен быть не менее 4 символов', 'error');
+            return;
+        }
+
+        if (class_code.length < 2) {
+            showMessage('Код класса должен быть не менее 2 символов', 'error');
+            return;
+        }
+
+        const data = {
+            username: username,
+            password: password,
+            class_code: class_code
+        };
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage('Регистрация успешна! Перенаправление...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                showMessage(result.error || 'Ошибка регистрации', 'error');
+            }
+        } catch (error) {
+            showMessage('Ошибка подключения к серверу', 'error');
+        }
+    });
+</script>

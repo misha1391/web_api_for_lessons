@@ -1,4 +1,5 @@
 import sqlite3
+from typing import Dict, Any
 from datetime import datetime
 import os
 
@@ -48,21 +49,21 @@ def init(db_file: str):
             description TEXT NOT NULL
         )""") # events
         conn.commit()
-def add(db_file: str, where: str, data: tuple):
+def add(db_file: str, where: str, data: Dict[str, Any]):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
-        cursor.execute(f"SELECT * from {where}")
-        names = [""] * (len(cursor.description)-1)
-        for i, desk in enumerate(cursor.description):
-            if i != 0:
-                names[i-1] += desk[0]
         strNames = ""
-        for name in names:
-            strNames += name + ", "
+        for key in data:
+            strNames += key + ", "
         strNames = strNames[0:-2]
-        strQues = ("?, " * (len(cursor.description)-1))[0:-2]
-        print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", data)
-        cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", tuple([data for key in data]))
+        values = ""
+        for key in data:
+            print("Key:", key)
+            print("Value:", data[key])
+            values += f"{data[key]}, "
+        values = values[0:-2]
+        print(f"INSERT INTO {where} ({strNames}) VALUES ({values})", data)
+        cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({values})")
         conn.commit()
 def get_all(db_file: str, where: str):
     with sqlite3.connect(db_file) as conn:
