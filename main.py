@@ -45,16 +45,16 @@ async def register(data: Dict[str, Any]):
 
     # Проверка существующего пользователя
     for user in users:
-        if user["username"] == username:
+        if user[1] == username:
             return {"success": False, "error": "Пользователь уже существует"}
 
     # Создание нового пользователя
-    new_user = {
-        "username": username,
-        "password": hash_password(password)
-    }
-    users.append(new_user)
-    userdb.override("database.db", "users", users)
+    new_user = (
+        username,
+        hash_password(password),
+        data.get("class_code", "")
+    )
+    userdb.add("database.db", "users", new_user)
 
     return {"success": True}
 @app.post("/api/login")
@@ -69,8 +69,10 @@ async def login(data: Dict[str, Any], response: Response):
 
     # Поиск пользователя
     hashed_password = hash_password(password)
+    print("users:", users)
     for user in users:
-        if user["username"] == username and user["password"] == hashed_password:
+        print("user:", user)
+        if user[1] == username and user[2] == hashed_password:
             # Создание сессии
             token = generate_token()
             active_sessions[token] = username
@@ -145,7 +147,6 @@ def add_class(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
     new_class = {
-        "id": generate_class_id(),
         "code": data["code"],
         "students": data["students"],
         "year": data["year"],
@@ -172,7 +173,6 @@ def add_event(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
     new_event = {
-        "id": generate_event_id(),
         "title": data["title"],
         "date": data["date"],
         "time": data["time"],
@@ -199,28 +199,23 @@ def get_lessons(session_token: str = Cookie(None)):
 def add_lesson(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    lessons = load_lessons()
+
     new_lesson = {
-        "id": generate_lesson_id(),
         "subject": data["subject"],
         "time_from": data["time_from"],
         "time_to": data["time_to"],
         "type": data["type"]
     }
-    lessons.append(new_lesson)
-    save_lessons(lessons)
+    userdb.add(userdb.DEF_DB_FILE, "lessons", new_lesson)
     return {"Success": True, "class": new_lesson}
 @app.delete("/api/lessons{lesson_id}")
 def delete_lesson(lesson_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
 
-    lessons = load_lessons()
-    for i, les in enumerate(lessons):
-        if les["id"] == lesson_id:
-            deleted_lesson = lessons.pop(i)
-            save_lessons(lessons)
-            return deleted_lesson
+    deleted_lesson = userdb.delete(userdb.DEF_DB_FILE, "lessons", lesson_id)
+    if deleted_lesson:
+        return deleted_lesson
     return {"ERROR": "Нет такого класса"}
 # Проверка авторизации для API
 @app.get("/api/check-auth")

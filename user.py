@@ -61,8 +61,8 @@ def add(db_file: str, where: str, data: tuple):
             strNames += name + ", "
         strNames = strNames[0:-2]
         strQues = ("?, " * (len(cursor.description)-1))[0:-2]
-        # print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})")
-        cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", data)
+        print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", data)
+        cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", tuple([data for key in data]))
         conn.commit()
 def get_all(db_file: str, where: str):
     with sqlite3.connect(db_file) as conn:
