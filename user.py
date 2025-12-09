@@ -56,14 +56,15 @@ def add(db_file: str, where: str, data: Dict[str, Any]):
         for key in data:
             strNames += key + ", "
         strNames = strNames[0:-2]
-        values = ""
+        values = ()
+        print("data:", data)
         for key in data:
             print("Key:", key)
             print("Value:", data[key])
-            values += f"{data[key]}, "
-        values = values[0:-2]
-        print(f"INSERT INTO {where} ({strNames}) VALUES ({values})", data)
-        cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({values})")
+            values += (data[key],)
+        strQues = ", ".join("?" * (len(data)))
+        print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", values)
+        cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", values)
         conn.commit()
 def get_all(db_file: str, where: str):
     with sqlite3.connect(db_file) as conn:
@@ -105,8 +106,8 @@ def delete(db_file: str, where: str, task_id: int):
         return deleted_data
 if __name__ == "__main__":
     init("todo.db")
-    add("todo.db", "users", ("Лол", "ХОЛ", "safddsg"))
-    add("todo.db", "users", ("Кек", "ХОЛ", "fdg"))
+    add("todo.db", "users", {"name": "Лол", "hashedPassword": "ХОЛ", "class_code": "safddsg"})
+    add("todo.db", "users", {"name": "Кек", "hashedPassword": "ХОЛ", "class_code": "fdg"})
     override_by_id("todo.db", "users", 0, ("Лол2", "ХОЛ2", "safddsg2"))
     all = list(get_all("todo.db", "users"))
     all[0] = [0, "Лох3", "ХОЛ3", "dsfgd3"]
