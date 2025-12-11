@@ -218,6 +218,10 @@
                         <input type="text" id="name" required>
                     </div>
                     <div>
+                        <label for="class_code">Код класса:</label>
+                        <input type="text" id="class_code" required>
+                    </div>
+                    <div>
                         <label for="subject">Предмет:</label>
                         <input type="text" id="subject" required>
                     </div>
@@ -253,6 +257,7 @@
 
                 const newGrade = {
                     name: document.getElementById('name').value,
+                    class_code: document.getElementById('class_code').value,
                     subject: document.getElementById('subject').value,
                     grade: document.getElementById('grade').value,
                     date: document.getElementById('date').value,

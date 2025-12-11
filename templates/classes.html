@@ -230,8 +230,8 @@
             <form id="add-class-form">
                 <div class="form-group">
                     <div>
-                        <label for="code">Код класса:</label>
-                        <input type="text" id="code" placeholder="Например: 10А" required>
+                        <label for="class_code">Код класса:</label>
+                        <input type="text" id="class_code" placeholder="Например: 10А" required>
                     </div>
                     <div>
                         <label for="year">Учебный год:</label>
@@ -265,7 +265,7 @@
                     .filter(s => s);
 
                 const newClass = {
-                    code: document.getElementById('code').value,
+                    class_code: document.getElementById('class_code').value,
                     students: studentsList,
                     year: document.getElementById('year').value,
                     super_teacher: document.getElementById('super_teacher').value

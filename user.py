@@ -1,6 +1,7 @@
 import sqlite3
-from typing import Dict, Any
+from typing import Dict, Any, List
 from datetime import datetime
+import json
 import os
 
 DEF_DB_FILE = "database.db"
@@ -66,12 +67,39 @@ def add(db_file: str, where: str, data: Dict[str, Any]):
         print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", values)
         cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", values)
         conn.commit()
-def get_all(db_file: str, where: str):
+def add_multiple(db_file: str, where: str, data: List[Dict[str, Any]]):
+    for i in data:
+        for key, val in i.items():
+            if type(val) == list:
+                for dat in val:
+                    datToAdd = i
+                    datToAdd[key] = dat
+                    add(db_file, where, datToAdd)
+            else:
+                print("Error: userdb::add_multiple(), given data haven`t got list in it")
+def get_all(db_file: str, table: str):
     with sqlite3.connect(db_file) as conn:
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM {where}")
-        tasks = tuple(cursor.fetchall())
-        return tasks
+        cursor.execute(f"SELECT * FROM {table}")
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+# def get_all(db_file: str, where: str):
+#     with sqlite3.connect(db_file) as conn:
+#         cursor = conn.cursor()
+#         conn.row_factory = sqlite3.Row
+#         cursor.execute(f"SELECT * FROM {where}")
+#         print("userdb::get_all()::cursor.desciption =", cursor.description)
+#         keys = [i[0] for i in cursor.description]
+#         values = cursor.fetchall() # fetchall можно вызвать только 1 раз!
+#         print("values:", values)
+#         print("keys:", keys)
+#         items = []
+#         for iv in range(len(values)):
+#             item = {keys[ik]: values[iv][ik] for ik in range(len(keys))}
+#             print("item:", item)
+#             items.append(item)
+#         return items
 def get_by_id(db_file: str, where: str, id: int):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
@@ -110,7 +138,8 @@ if __name__ == "__main__":
     add("todo.db", "users", {"name": "Кек", "hashedPassword": "ХОЛ", "class_code": "fdg"})
     override_by_id("todo.db", "users", 0, ("Лол2", "ХОЛ2", "safddsg2"))
     all = list(get_all("todo.db", "users"))
-    all[0] = [0, "Лох3", "ХОЛ3", "dsfgd3"]
+    print("all:", all)
+    # all[0] = [0, "Лох3", "ХОЛ3", "dsfgd3"]
     override("todo.db", "users", all)
     # print("deleted data:", delete("todo.db", "users", 1))
     print(get_all("todo.db", "users"))

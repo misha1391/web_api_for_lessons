@@ -73,7 +73,7 @@ async def login(data: Dict[str, Any], response: Response):
     print("users:", users)
     for user in users:
         print("user:", user)
-        if user[1] == username and user[2] == hashed_password:
+        if user["name"] == username and user["hashedPassword"] == hashed_password:
             # Создание сессии
             token = generate_token()
             active_sessions[token] = username
@@ -94,7 +94,9 @@ async def logout(response: Response, session_token: str = Cookie(None)):
 def get_grades(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    return userdb.get_all(userdb.DEF_DB_FILE, "grades")
+    test = userdb.get_all(userdb.DEF_DB_FILE, "grades")
+    print("main::get_grades() =", test)
+    return test
 @app.post("/api/grades")
 def add_grade(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
@@ -148,12 +150,12 @@ def add_class(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
     new_class = {
-        "code": data["code"],
-        "students": data["students"],
+        "class_code": data["class_code"],
+        "student": data["students"],
         "year": data["year"],
         "super_teacher": data["super_teacher"]
     }
-    userdb.add(userdb.DEF_DB_FILE, "classes", new_class)
+    userdb.add_multiple(userdb.DEF_DB_FILE, "classes", new_class)
     return {"Success": True, "class": new_class}
 @app.delete("/api/classes/{class_id}")
 def delete_class_by_id(class_id: int, session_token: str = Cookie(None)):
@@ -182,7 +184,7 @@ def add_event(data: Dict[str, Any], session_token: str = Cookie(None)):
     }
     userdb.add(userdb.DEF_DB_FILE, "events", new_event)
     return {"Success": True, "class": new_event}
-@app.delete("/api/events{event_id}")
+@app.delete("/api/events/{event_id}")
 def delete_event(event_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
@@ -209,7 +211,7 @@ def add_lesson(data: Dict[str, Any], session_token: str = Cookie(None)):
     }
     userdb.add(userdb.DEF_DB_FILE, "lessons", new_lesson)
     return {"Success": True, "class": new_lesson}
-@app.delete("/api/lessons{lesson_id}")
+@app.delete("/api/lessons/{lesson_id}")
 def delete_lesson(lesson_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
