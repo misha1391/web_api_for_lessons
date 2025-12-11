@@ -314,13 +314,13 @@
                     tableBody.innerHTML = classes.map(cls => `
                         <tr>
                             <td>${cls.id}</td>
-                            <td><strong>${cls.code}</strong></td>
+                            <td><strong>${cls.class_code}</strong></td>
                             <td>${cls.year}</td>
                             <td>${cls.super_teacher}</td>
                             <td>
                                 <ul class="students-list">
-                                    ${cls.students.slice(0, 3).map(student => `<li>${student}</li>`).join('')}
-                                    ${cls.students.length > 3 ? `<li>+${cls.students.length - 3} учеников</li>` : ''}
+                                    ${cls.student.slice(0, 3).map(student => `<li>${student}</li>`).join('')}
+                                    ${cls.student.length > 3 ? `<li>+${cls.student.length - 3} учеников</li>` : ''}
                                 </ul>
                             </td>
                             <td>

@@ -224,6 +224,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Код класса</th>
                             <th>Название события</th>
                             <th>Дата</th>
                             <th>Время</th>
@@ -254,20 +255,21 @@
             <form id="add-event-form">
                 <div class="form-group">
                     <div>
+                        <label for="class_code">Код класса:</label>
+                        <input type="text" id="class_code" required>
+                    </div>
+                    <div>
                         <label for="title">Название события:</label>
                         <input type="text" id="title" required>
                     </div>
-
                     <div>
                         <label for="date">Дата:</label>
                         <input type="date" id="date" required>
                     </div>
-
                     <div>
                         <label for="time">Время:</label>
                         <input type="time" id="time" required>
                     </div>
-
                     <div>
                         <label for="type">Тип события:</label>
                         <select id="type" required>
@@ -280,7 +282,6 @@
                             <option value="Другое">Другое</option>
                         </select>
                     </div>
-
                     <div style="grid-column: 1 / -1;">
                         <label for="description">Описание:</label>
                         <textarea id="description"></textarea>
@@ -303,10 +304,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const newEvent = {
             title: document.getElementById('title').value,
+            class_code: document.getElementById('class_code').value,
             date: document.getElementById('date').value,
             time: document.getElementById('time').value,
             type: document.getElementById('type').value,
-            description: document.getElementById('description').value,
+            description: document.getElementById('description').value
         };
 
         try {
@@ -350,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tableBody.innerHTML = events.map(ev => `
                 <tr>
                     <td>${ev.id}</td>
+                    <td>${ev.class_code}</td>
                     <td>${ev.title}</td>
                     <td>${ev.date}</td>
                     <td>${ev.time}</td>

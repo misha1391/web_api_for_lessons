@@ -135,7 +135,19 @@ def get_grade_by_id(grade_id: int, session_token: str = Cookie(None)):
 def all_classes(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
-    return userdb.get_all(userdb.DEF_DB_FILE, "classes")
+    answer = []
+    class_codes = []
+    for i in userdb.get_all(userdb.DEF_DB_FILE, "classes"):
+        i["student"] = [i["student"]]
+        if i["class_code"] not in class_codes:
+            class_codes.append(i["class_code"])
+            answer.append(i)
+        else:
+            for i2 in range(len(answer)):
+                if answer[i2]["class_code"] == i["class_code"]:
+                    answer[i2]["student"].append(i["student"][0])
+    print("main::all_classes() =", answer)
+    return answer
 @app.get("/api/classes/{class_id}")
 def get_class_by_id(class_id: int, session_token: str = Cookie(None)):
     if not check_auth(session_token):
@@ -176,6 +188,7 @@ def add_event(data: Dict[str, Any], session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
     new_event = {
+        "class_code": data["class_code"],
         "title": data["title"],
         "date": data["date"],
         "time": data["time"],
@@ -204,6 +217,8 @@ def add_lesson(data: Dict[str, Any], session_token: str = Cookie(None)):
         return {"error": "Не авторизован"}
 
     new_lesson = {
+        "class_code": data["class_code"],
+        "day": data["day"],
         "subject": data["subject"],
         "time_from": data["time_from"],
         "time_to": data["time_to"],

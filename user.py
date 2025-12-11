@@ -83,7 +83,9 @@ def get_all(db_file: str, table: str):
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {table}")
         rows = cursor.fetchall()
-        return [dict(row) for row in rows]
+        returnable = [dict(row) for row in rows]
+        print("get_all returns:", returnable)
+        return returnable
 # def get_all(db_file: str, where: str):
 #     with sqlite3.connect(db_file) as conn:
 #         cursor = conn.cursor()
