@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление аккаунтом</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            background-color: #111;
+            color: #eee;
+        }
+        header {
+            background-color: #000;
+            padding: 15px 30px;
+            border-bottom: 2px solid #c00;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #c00;
+        }
+        main {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 10px;
+        }
+        section {
+            margin-bottom: 35px;
+        }
+        section h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-left: 4px solid #c00;
+            padding-left: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: none;
+            background-color: #2a2a2a;
+            color: #fff;
+        }
+        input:focus {
+            outline: 2px solid #c00;
+        }
+        button {
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #c00;
+            color: #fff;
+        }
+        .btn-secondary {
+            background-color: #444;
+            color: #fff;
+        }
+        .btn-danger {
+            background-color: #900;
+            color: #fff;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #777;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Управление аккаунтом</h1>
+</header>
+
+<main>
+
+    <!-- Информация об аккаунте -->
+    <section>
+        <h2>Профиль</h2>
+        <p><strong>Логин:</strong> {{ username }}</p>
+        <p><strong>Email:</strong> {{ email }}</p>
+    </section>
+
+    <!-- Смена пароля -->
+    <section>
+        <h2>Смена пароля</h2>
+        <form method="post" action="/account/change-password">
+            <label>Текущий пароль</label>
+            <input type="password" name="old_password" required>
+
+            <label>Новый пароль</label>
+            <input type="password" name="new_password" required>
+
+            <button class="btn-primary" type="submit">Сменить пароль</button>
+        </form>
+    </section>
+
+    <!-- Действия -->
+    <section>
+        <h2>Действия с аккаунтом</h2>
+        <div class="actions">
+            <form method="post" action="/api/logout">
+                <button class="btn-secondary" type="submit">Выйти</button>
+            </form>
+
+            <form method="post" action="/api/deleteAcc" onsubmit="return confirm('Вы уверены? Это действие необратимо');">
+                <button class="btn-danger" type="submit">Удалить аккаунт</button>
+            </form>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    © Account Manager / FastAPI
+</footer>
+
+</body>
+</html>

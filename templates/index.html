@@ -37,7 +37,7 @@
         .nav-btn {
             background: #121212;
             color: #667eea;
-            padding: 20px 40px;
+            padding: 10px 20px;
             border-radius: 15px;
             text-decoration: none;
             font-size: 1.2em;
@@ -52,6 +52,23 @@
         .nav-btn:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .acc-btn {
+            position: absolute;
+            top: 20px;
+            right: 150px;
+            background: #121212;
+            color: #667eea;
+            padding: 12px 25px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        .acc-btn:hover {
+            background: #1e1e1e;
+            transform: translateY(-3px);
         }
         .logout-btn {
             position: absolute;
@@ -92,30 +109,28 @@
     </style>
 </head>
 <body>
-    <form id="logoutForm" action="/api/log/out" method="POST"></form>
+    <form id="logoutForm" action="/api/logout" method="POST"></form>
     <button class="logout-btn" onclick="document.getElementById('logoutForm').submit();">🚪 Выйти</button>
-
+    <a href="/account" class="acc-btn">
+        <span>🕵️ Аккаунт</span>
+    </a>
     <div class="container">
-        <h1>📚 Система управления оценками и классами</h1>
-
         <div class="nav-buttons">
             <a href="/grades" class="nav-btn">
-                <span class="icon">📝</span>
-                <span>Оценки</span>
+                <span>📝 Оценки</span>
             </a>
             <a href="/classes" class="nav-btn">
-                <span class="icon">🎓</span>
-                <span>Классы</span>
+                <span>🎓 Классы</span>
             </a>
             <a href="/events" class="nav-btn">
-                <span class="icon">📆</span>
-                <span>События</span>
+                <span>📆 События</span>
             </a>
             <a href="/lessons" class="nav-btn">
-                <span class="icon">📚</span>
-                <span>Уроки</span>
+                <span>📚 Уроки</span>
             </a>
         </div>
+
+        <h1>📚 Система управления оценками и классами</h1>
 
         <div class="info-card">
             <h2>Добро пожаловать!</h2>

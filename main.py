@@ -13,14 +13,16 @@ templates = Jinja2Templates(directory="templates")
 
 userdb.init("database.db")
 
-# Jsons
+# Именно так можно сворачивать в VSCode
+# region Jsons
 JSON_FILE = "jsons/grades.json"
 CLASSES_FILE = "jsons/classes.json"
 EVENTS_FILE = "jsons/events.json"
 LESSONS_FILE = "jsons/lessons.json"
 USERS_FILE = "jsons/users.json"
+# endregion
 
-# Load - Save
+# region Helpers
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 def generate_token() -> str:
@@ -32,7 +34,9 @@ def check_auth(token: str = None):
     if not token:
         return None
     return active_sessions.get(token)
-# api запросы
+# endregion
+
+# region api запросы
 @app.post("/api/register")
 async def register(data: Dict[str, Any]):
     users = userdb.get_all(userdb.DEF_DB_FILE, "users")
@@ -45,11 +49,10 @@ async def register(data: Dict[str, Any]):
 
     # Проверка существующего пользователя
     for user in users:
-        if user[1] == username:
+        if user["name"] == username:
             return {"success": False, "error": "Пользователь уже существует"}
 
     # Создание нового пользователя
-    print("data:", data)
     new_user = {
         "name": username,
         "hashedPassword": hash_password(password),
@@ -70,9 +73,7 @@ async def login(data: Dict[str, Any], response: Response):
 
     # Поиск пользователя
     hashed_password = hash_password(password)
-    print("users:", users)
     for user in users:
-        print("user:", user)
         if user["name"] == username and user["hashedPassword"] == hashed_password:
             # Создание сессии
             token = generate_token()
@@ -89,13 +90,20 @@ async def logout(response: Response, session_token: str = Cookie(None)):
 
     response.delete_cookie("session_token")
     return RedirectResponse(url="/login", status_code=302)
+@app.post("/api/deleteAcc")
+async def deleteAcc(response: Response, session_token: str = Cookie(None)):
+    if session_token and session_token in active_sessions:
+        userdb.delete_by_item(userdb.DEF_DB_FILE, "users", "name", active_sessions[session_token])
+        del active_sessions[session_token]
+    response.delete_cookie("session_token")
+    return RedirectResponse(url="/login", status_code=302)
+    
 # API endpoints для оценок (с проверкой авторизации)
 @app.get("/api/grades")
 def get_grades(session_token: str = Cookie(None)):
     if not check_auth(session_token):
         return {"error": "Не авторизован"}
     test = userdb.get_all(userdb.DEF_DB_FILE, "grades")
-    print("main::get_grades() =", test)
     return test
 @app.post("/api/grades")
 def add_grade(data: Dict[str, Any], session_token: str = Cookie(None)):
@@ -146,7 +154,6 @@ def all_classes(session_token: str = Cookie(None)):
             for i2 in range(len(answer)):
                 if answer[i2]["class_code"] == i["class_code"]:
                     answer[i2]["student"].append(i["student"][0])
-    print("main::all_classes() =", answer)
     return answer
 @app.get("/api/classes/{class_id}")
 def get_class_by_id(class_id: int, session_token: str = Cookie(None)):
@@ -242,7 +249,9 @@ async def check_auth_endpoint(session_token: str = Cookie(None)):
     if username:
         return {"authenticated": True, "username": username}
     return {"authenticated": False}
+# endregion
 
+# region Все страницы
 # Страницы аутентификации
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -257,6 +266,12 @@ async def home(request: Request, session_token: str = Cookie(None)):
     if not username:
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("index.html", {"request": request, "username": username})
+@app.get("/account", response_class=HTMLResponse)
+async def account_page(request: Request, session_token: str = Cookie(None)):
+    username = check_auth(session_token)
+    if not username:
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse("account.html", {"request": request, "username": username})
 @app.get("/grades", response_class=HTMLResponse)
 async def grades_page(request: Request, session_token: str = Cookie(None)):
     username = check_auth(session_token)
@@ -276,6 +291,8 @@ async def events_page(request: Request, session_token: str = Cookie(None)):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("events.html", {"request": request, "username": username})
 @app.get("/lessons", response_class=HTMLResponse)
+# endregion
+
 async def lessons_page(request: Request, session_token: str = Cookie(None)):
     username = check_auth(session_token)
     if not username:

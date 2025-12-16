@@ -58,13 +58,9 @@ def add(db_file: str, where: str, data: Dict[str, Any]):
             strNames += key + ", "
         strNames = strNames[0:-2]
         values = ()
-        print("data:", data)
         for key in data:
-            print("Key:", key)
-            print("Value:", data[key])
             values += (data[key],)
         strQues = ", ".join("?" * (len(data)))
-        print(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", values)
         cursor.execute(f"INSERT INTO {where} ({strNames}) VALUES ({strQues})", values)
         conn.commit()
 def add_multiple(db_file: str, where: str, data: List[Dict[str, Any]]):
@@ -83,10 +79,8 @@ def get_all(db_file: str, table: str):
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {table}")
         rows = cursor.fetchall()
-        returnable = [dict(row) for row in rows]
-        print("get_all returns:", returnable)
-        return returnable
-# def get_all(db_file: str, where: str):
+        return [dict(row) for row in rows]
+# region def get_all(db_file: str, where: str):
 #     with sqlite3.connect(db_file) as conn:
 #         cursor = conn.cursor()
 #         conn.row_factory = sqlite3.Row
@@ -102,6 +96,7 @@ def get_all(db_file: str, table: str):
 #             print("item:", item)
 #             items.append(item)
 #         return items
+# endregion
 def get_by_id(db_file: str, where: str, id: int):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
@@ -120,28 +115,37 @@ def override_by_id(db_file: str, where: str, id: int, data: tuple):
         for name in names:
             strNames += name + " = ?, "
         strNames = strNames[0:-2]
-        # print(f"UPDATE {where} SET {strNames} WHERE id = {id}")
         cursor.execute(f"UPDATE {where} SET {strNames} WHERE id = {id}", data)
         conn.commit()
 def override(db_file: str, where: str, data: tuple):
     for dat in data:
         override_by_id(db_file, where, dat[0], dat[1:])
-def delete(db_file: str, where: str, task_id: int):
+def delete_by_id(db_file: str, where: str, task_id: int):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {where} WHERE id = {task_id}") # Писать так или как ниже без разницы
         deleted_data = cursor.fetchall()
         cursor.execute(f"DELETE FROM {where} WHERE id = ?", (task_id,))  # Нужен кортеж, заменяет все "?" в комманде
         conn.commit()
-        return deleted_data
+        return deleted_data[0] if deleted_data else ()
+def delete_by_item(db_file: str, where: str, column: str, contains: str):
+    with sqlite3.connect(db_file) as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT * FROM {where} WHERE {column} = ?", (contains,))
+        deleted_data = cursor.fetchall()
+        cursor.execute(f"DELETE FROM {where} WHERE {column} = ?", (contains,))
+        conn.commit()
+        return deleted_data[0] if deleted_data else ()
 if __name__ == "__main__":
     init("todo.db")
     add("todo.db", "users", {"name": "Лол", "hashedPassword": "ХОЛ", "class_code": "safddsg"})
     add("todo.db", "users", {"name": "Кек", "hashedPassword": "ХОЛ", "class_code": "fdg"})
+    delete_by_id("todo.db", "users", 3)
+    print(delete_by_item("todo.db", "users", "name", "Кек"))
     override_by_id("todo.db", "users", 0, ("Лол2", "ХОЛ2", "safddsg2"))
     all = list(get_all("todo.db", "users"))
     print("all:", all)
     # all[0] = [0, "Лох3", "ХОЛ3", "dsfgd3"]
-    override("todo.db", "users", all)
+    # override("todo.db", "users", all)
     # print("deleted data:", delete("todo.db", "users", 1))
     print(get_all("todo.db", "users"))
