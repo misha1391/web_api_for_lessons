@@ -9,8 +9,8 @@
 - Разделение учетных записей для учеников и учителей
 
 Как установить библотеки? - Они уже есть в папке .venv, но можно установить и вручную:
-FastAPI - ввести в cmd команду > pip install fastapi
-Uvicorn - ввести в cmd команду > pip install uvicorn
+- FastAPI - ввести в cmd команду > pip install fastapi
+- Uvicorn - ввести в cmd команду > pip install uvicorn
 
 Необходимые версии:
-python 3.10+ (в .venv используется 3.13.7)
+- python 3.10+ (в .venv используется 3.13.7)
