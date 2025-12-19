@@ -19,6 +19,7 @@ def init(db_file: str):
         cursor.execute("""CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            email TEXT NOT NULL,
             hashedPassword TEXT NOT NULL,
             class_code TEXT NOT NULL
         )""") # users
@@ -73,36 +74,34 @@ def add_multiple(db_file: str, where: str, data: List[Dict[str, Any]]):
                     add(db_file, where, datToAdd)
             else:
                 print("Error: userdb::add_multiple(), given data haven`t got list in it")
-def get_all(db_file: str, table: str):
+# region Getters
+def get_all(db_file: str, where: str):
     with sqlite3.connect(db_file) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM {table}")
+        cursor.execute(f"SELECT * FROM {where}")
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
-# region def get_all(db_file: str, where: str):
-#     with sqlite3.connect(db_file) as conn:
-#         cursor = conn.cursor()
-#         conn.row_factory = sqlite3.Row
-#         cursor.execute(f"SELECT * FROM {where}")
-#         print("userdb::get_all()::cursor.desciption =", cursor.description)
-#         keys = [i[0] for i in cursor.description]
-#         values = cursor.fetchall() # fetchall можно вызвать только 1 раз!
-#         print("values:", values)
-#         print("keys:", keys)
-#         items = []
-#         for iv in range(len(values)):
-#             item = {keys[ik]: values[iv][ik] for ik in range(len(keys))}
-#             print("item:", item)
-#             items.append(item)
-#         return items
-# endregion
 def get_by_id(db_file: str, where: str, id: int):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {where} WHERE id = ?", (id,)) # Нужен кортеж, заменяет все "?" в комманде
         tasks = cursor.fetchall()
         return tasks
+def get_all_items(db_file: str, where: str, item: str):
+    with sqlite3.connect(db_file) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT {item} FROM {where}")
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+def get_item_by_id(db_file: str, where: str, item: str, id: int):
+    with sqlite3.connect(db_file) as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT {item} FROM {where} WHERE id = ?", (id,)) # Нужен кортеж, заменяет все "?" в комманде
+        tasks = cursor.fetchall()
+        return tasks
+# endregion
 def override_by_id(db_file: str, where: str, id: int, data: tuple):
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()

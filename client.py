@@ -2,7 +2,6 @@ import requests
 
 URL = "http://127.0.0.1:8000"
 
-
 def get_all():  # выдает все
     try:
         res = requests.get(f"{URL}/grades")
@@ -11,7 +10,6 @@ def get_all():  # выдает все
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при получении оценок: {e}")
 
-
 def get_by_id(grade_id):  # выдает айди
     try:
         res = requests.get(f"{URL}/grades/{grade_id}")
@@ -19,7 +17,6 @@ def get_by_id(grade_id):  # выдает айди
         print(res.json())
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при получении оценки {grade_id}: {e}")
-
 
 def add_grade(name, subject, grade, date, teacher):  # шаблон для 30 строки и обьявление каждого обьекта
     data = {
@@ -36,7 +33,6 @@ def add_grade(name, subject, grade, date, teacher):  # шаблон для 30 с
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при добавлении оценки: {e}")
 
-
 def delete_grade(grade_id):
     try:
         res = requests.delete(f"{URL}/grades/{grade_id}")
@@ -44,7 +40,6 @@ def delete_grade(grade_id):
         print(res.json())
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при удалении оценки {grade_id}: {e}")
-
 
 # НОВЫЕ ФУНКЦИИ ДЛЯ КЛАССОВ
 def get_all_classes():  # выдает все классы
@@ -55,7 +50,6 @@ def get_all_classes():  # выдает все классы
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при получении классов: {e}")
 
-
 def get_class_by_id(class_id):  # выдает класс по айди
     try:
         res = requests.get(f"{URL}/classes/{class_id}")
@@ -63,7 +57,6 @@ def get_class_by_id(class_id):  # выдает класс по айди
         print(res.json())
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при получении класса {class_id}: {e}")
-
 
 def add_class(code, students, year, super_teacher):  # добавляет класс
     data = {
@@ -79,7 +72,6 @@ def add_class(code, students, year, super_teacher):  # добавляет кла
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при добавлении класса: {e}")
 
-
 def delete_class(class_id):  # удаляет класс
     try:
         res = requests.delete(f"{URL}/classes/{class_id}")
@@ -87,7 +79,6 @@ def delete_class(class_id):  # удаляет класс
         print(res.json())
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при удалении класса {class_id}: {e}")
-
 
 if __name__ == "__main__":
     # Тестирование функций для классов

@@ -126,6 +126,10 @@
                 <div class="hint">Минимум 3 символа</div>
             </div>
             <div class="form-group">
+                <label>Электронная почта:</label>
+                <input type="text" id="email" required autocomplete="email">
+            </div>
+            <div class="form-group">
                 <label>Код класса:</label>
                 <input type="text" id="class_code" required autocomplete="class_code" minlength="2">
                 <div class="hint">Минимум 2 символа</div>
@@ -145,16 +149,8 @@
             Уже есть аккаунт? <a href="/login">Войти</a>
         </div>
     </div>
-
 </body>
 </html>
-
-
-
-
-
-
-
 <script>
     function showMessage(text, type) {
         const msg = document.getElementById('message');
@@ -168,6 +164,7 @@
 
         const username        = document.getElementById('username').value;
         const class_code      = document.getElementById('class_code').value;
+        const email           = document.getElementById('email').value;
         const password        = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -178,6 +175,11 @@
 
         if (username.length < 3) {
             showMessage('Имя пользователя должно быть не менее 3 символов', 'error');
+            return;
+        }
+
+        if (!(/^[\w\_\.\,\+\-]+@[a-zA-Z]{3,8}.[a-zA-Z]{2,5}$/).test(email)) {
+            showMessage("Email не похож на корректный", "error");
             return;
         }
 
@@ -193,6 +195,7 @@
 
         const data = {
             username: username,
+            email: email,
             password: password,
             class_code: class_code
         };

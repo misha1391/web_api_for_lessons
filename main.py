@@ -37,14 +37,17 @@ def check_auth(token: str = None):
 # endregion
 
 # region api запросы
+# region Работа с аккаунтами
 @app.post("/api/register")
 async def register(data: Dict[str, Any]):
     users = userdb.get_all(userdb.DEF_DB_FILE, "users")
 
-    username = data.get("username", "").strip()
-    password = data.get("password", "")
+    username   = data.get("username", "").strip()
+    password   = data.get("password", "")
+    class_code = data.get("class_code")
+    email      = data.get("email", "")
 
-    if not username or not password:
+    if not (username and password and class_code and email):
         return {"success": False, "error": "Заполните все поля"}
 
     # Проверка существующего пользователя
@@ -56,7 +59,8 @@ async def register(data: Dict[str, Any]):
     new_user = {
         "name": username,
         "hashedPassword": hash_password(password),
-        "class_code": data.get("class_code")
+        "email": email,
+        "class_code": class_code
     }
     userdb.add("database.db", "users", new_user)
 
@@ -97,8 +101,13 @@ async def deleteAcc(response: Response, session_token: str = Cookie(None)):
         del active_sessions[session_token]
     response.delete_cookie("session_token")
     return RedirectResponse(url="/login", status_code=302)
+@app.post("api/changePassword")
+async def changePass(rsponse: Response, session_token: str = Cookie(None)):
+    if not check_auth(session_token):
+        return {"error": "Не авторизован"}
     
-# API endpoints для оценок (с проверкой авторизации)
+# endregion
+# region Оценки
 @app.get("/api/grades")
 def get_grades(session_token: str = Cookie(None)):
     if not check_auth(session_token):
@@ -138,7 +147,8 @@ def get_grade_by_id(grade_id: int, session_token: str = Cookie(None)):
     if grade:
         return grade
     return {"ERROR": "Нет такой оценки"}
-# API endpoints для классов (с проверкой авторизации)
+# endregion
+# region Классы
 @app.get("/api/classes")
 def all_classes(session_token: str = Cookie(None)):
     if not check_auth(session_token):
@@ -185,6 +195,8 @@ def delete_class_by_id(class_id: int, session_token: str = Cookie(None)):
     if deleted_class:
         return deleted_class
     return {"ERROR": "Нет такого класса"}
+# endregion
+# region События
 @app.get("/api/events")
 def get_events(session_token: str = Cookie(None)):
     if not check_auth(session_token):
@@ -213,6 +225,8 @@ def delete_event(event_id: int, session_token: str = Cookie(None)):
     if deleted_event:
         return deleted_event
     return {"ERROR": "Нет такого класса"}
+# endregion
+# region Уроки
 @app.get("/api/lessons")
 def get_lessons(session_token: str = Cookie(None)):
     if not check_auth(session_token):
@@ -242,7 +256,8 @@ def delete_lesson(lesson_id: int, session_token: str = Cookie(None)):
     if deleted_lesson:
         return deleted_lesson
     return {"ERROR": "Нет такого класса"}
-# Проверка авторизации для API
+# endregion
+# region Проверка авторизации для API
 @app.get("/api/check-auth")
 async def check_auth_endpoint(session_token: str = Cookie(None)):
     username = check_auth(session_token)
@@ -250,16 +265,18 @@ async def check_auth_endpoint(session_token: str = Cookie(None)):
         return {"authenticated": True, "username": username}
     return {"authenticated": False}
 # endregion
+# endregion
 
 # region Все страницы
-# Страницы аутентификации
+# region Страницы аутентификации
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
-# Веб-страницы (с проверкой авторизации)
+# endregion
+# region Веб-страницы (с проверкой авторизации)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, session_token: str = Cookie(None)):
     username = check_auth(session_token)
@@ -271,7 +288,12 @@ async def account_page(request: Request, session_token: str = Cookie(None)):
     username = check_auth(session_token)
     if not username:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("account.html", {"request": request, "username": username})
+    acounts = userdb.get_all_items(userdb.DEF_DB_FILE, "users", "name, email")
+    email = "error"
+    for i in acounts:
+        if i["name"] == username:
+            email = i["email"]
+    return templates.TemplateResponse("account.html", {"request": request, "username": username, "email": email})
 @app.get("/grades", response_class=HTMLResponse)
 async def grades_page(request: Request, session_token: str = Cookie(None)):
     username = check_auth(session_token)
@@ -291,6 +313,7 @@ async def events_page(request: Request, session_token: str = Cookie(None)):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("events.html", {"request": request, "username": username})
 @app.get("/lessons", response_class=HTMLResponse)
+# endregion
 # endregion
 
 async def lessons_page(request: Request, session_token: str = Cookie(None)):
