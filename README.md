@@ -16,6 +16,7 @@
 Как установить библотеки? - Они уже есть в папке .venv, но можно установить и вручную:
 - FastAPI - ввести в cmd команду > pip install fastapi
 - Uvicorn - ввести в cmd команду > pip install uvicorn
+- Jinja2  - ввести в cmd команду > pip install jinja2
 
 Необходимые версии:
 - python 3.10+ (в .venv используется 3.13.7)
